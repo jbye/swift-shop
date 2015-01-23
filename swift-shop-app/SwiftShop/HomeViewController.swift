@@ -73,7 +73,9 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         let btn = sender as UIButton!
         btn.selected = !btn.selected
         
-        NSUserDefaults.standardUserDefaults().setObject("TRUE", forKey: "product_" + 1)
+        
+        let userDefaults = NSUserDefaults.standardUserDefaults()
+        userDefaults.setObject("TRUE", forKey: String(btn.tag))
     }
     
     func swipeView(swipeView: SwipeView!, viewForItemAtIndex index: Int, reusingView view: UIView!) -> UIView! {
@@ -93,6 +95,11 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         favoriteButton.setImage(UIImage(named: "heart_empty"), forState: UIControlState.Normal)
         favoriteButton.setImage(UIImage(named: "heart_filled"), forState: UIControlState.Selected)
         favoriteButton.addTarget(self, action: "handleFavoriteButtonTap:", forControlEvents: UIControlEvents.TouchUpInside)
+        favoriteButton.tag = product["id"] as Int!
+        
+        let productStatus = NSUserDefaults.standardUserDefaults().objectForKey(String(favoriteButton.tag))
+        favoriteButton.selected = productStatus != nil
+        
         view.addSubview(favoriteButton)
         
         let titleLabel = UILabel(frame: CGRectMake(15, 260, 345, 28))
