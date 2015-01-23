@@ -11,12 +11,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150123094528) do
+ActiveRecord::Schema.define(version: 20150123134005) do
+
+  create_table "attachinary_files", force: :cascade do |t|
+    t.integer  "attachinariable_id"
+    t.string   "attachinariable_type"
+    t.string   "scope"
+    t.string   "public_id"
+    t.string   "version"
+    t.integer  "width"
+    t.integer  "height"
+    t.string   "format"
+    t.string   "resource_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "attachinary_files", ["attachinariable_type", "attachinariable_id", "scope"], name: "by_scoped_parent"
 
   create_table "brands", force: :cascade do |t|
     t.string   "title"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text     "image_url"
   end
 
   create_table "products", force: :cascade do |t|
@@ -26,6 +43,7 @@ ActiveRecord::Schema.define(version: 20150123094528) do
     t.float    "price"
     t.datetime "created_at",  null: false
     t.datetime "updated_at",  null: false
+    t.text     "image_url"
   end
 
 end
