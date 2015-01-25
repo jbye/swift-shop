@@ -14,26 +14,40 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
     var sidebar: RNFrostedSidebar!
     var swipeView: SwipeView!
     var products: [Dictionary<String,AnyObject>] = []
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        // Prevent content behind navbar
+        self.edgesForExtendedLayout = UIRectEdge.None
+        
+        setupNavBar()
+        setupSidebar()
+        setupSwipeView()
+        
+        fetchAndDisplayProducts()
+    }
+    
+    func setupNavBar() {
         // Do any additional setup after loading the view.
-        let leftButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "menu"),
+        let menuBarButton: UIBarButtonItem = UIBarButtonItem(image: UIImage(named: "menu"),
             style: UIBarButtonItemStyle.Plain,
             target: self,
             action: "handleMenuButtonTap")
-        navigationItem.leftBarButtonItem = leftButton
+        navigationItem.leftBarButtonItem = menuBarButton
         
-        let btn: MIBadgeButton = MIBadgeButton()
-        btn.frame = CGRect(x: 0, y: 0, width: 32, height: 32);
-        btn.setImage(UIImage(named: "shopping_cart"), forState: UIControlState.Normal)
-        btn.badgeString = "2"
-        btn.badgeEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 0, right: 12)
+        let cartButton: MIBadgeButton = MIBadgeButton()
+        cartButton.frame = CGRect(x: 0, y: 0, width: 32, height: 32);
+        cartButton.setImage(UIImage(named: "shopping_cart"), forState: UIControlState.Normal)
+        cartButton.badgeString = "2"
+        cartButton.badgeEdgeInsets = UIEdgeInsets(top: 12, left: 0, bottom: 0, right: 12)
+        cartButton.addTarget(self, action: "handleShoppingCartTap", forControlEvents: UIControlEvents.TouchUpInside)
         
-        let cartButton: UIBarButtonItem = UIBarButtonItem(customView: btn)
-        navigationItem.rightBarButtonItem = cartButton
-        
+        let cartBarButton: UIBarButtonItem = UIBarButtonItem(customView: cartButton)
+        navigationItem.rightBarButtonItem = cartBarButton
+    }
+    
+    func setupSidebar() {
         let sidebarImages: [UIImage] = [
             UIImage(named: "menu_icon_search")!,
             UIImage(named: "menu_icon_profile")!,
@@ -41,25 +55,25 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         ]
         sidebar = RNFrostedSidebar(images: sidebarImages)
         sidebar.delegate = self
-        
-        self.swipeView = SwipeView(frame: CGRect(x: 0, y: 64, width: 375, height: 604))
+    }
+    
+    func setupSwipeView() {
+        self.swipeView = SwipeView(frame: CGRect(x: 0, y: 0,
+            width: Constants.View.VIEW_W, height: Constants.View.VIEW_H))
         self.swipeView.backgroundColor = UIColor.clearColor()
         self.swipeView.wrapEnabled = true
         self.view.addSubview(self.swipeView)
         
         self.swipeView.delegate = self
         self.swipeView.dataSource = self
-        
-        getProducts()
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
     
     func handleMenuButtonTap() {
@@ -67,13 +81,29 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
     }
     
     func handleShoppingCartTap() {
+        NSLog("Not yet implemented")
+    }
+    
+    func handleAddToCartTap() {
+        NSLog("Not yet implemented")
     }
     
     func handleFavoriteButtonTap(sender: AnyObject?) {
         let btn = sender as UIButton!
         btn.selected = !btn.selected
         
-        
+        UIView.animateWithDuration(0.2, animations: { () -> Void in
+            btn.transform = CGAffineTransformMakeScale(1.2, 1.2)
+        }) { (Bool) -> Void in
+            UIView.animateWithDuration(0.2, animations: { () -> Void in
+            btn.transform = CGAffineTransformMakeScale(0.8, 0.8)
+            }, completion: { (Bool) -> Void in
+                UIView.animateWithDuration(0.2, animations: { () -> Void in
+                    btn.transform = CGAffineTransformMakeScale(1.0, 1.0)
+                })
+            })
+        }
+
         let userDefaults = NSUserDefaults.standardUserDefaults()
         userDefaults.setObject("TRUE", forKey: String(btn.tag))
     }
@@ -84,7 +114,7 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         let view = UIView(frame: CGRectMake(0, 0,
             swipeView.frame.size.width, swipeView.frame.size.height))
         
-        let imageView = UIImageView(frame: CGRectMake(0, 0, 375, 250)) //UIImageView(image: UIImage(named: "0172.jpg"))
+        let imageView = UIImageView(frame: CGRectMake(0, 0, Constants.View.VIEW_W, 250))
         imageView.contentMode = UIViewContentMode.ScaleAspectFit
         imageView.alpha = 0.9
         imageView.backgroundColor = UIColor.whiteColor()
@@ -97,19 +127,21 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         favoriteButton.addTarget(self, action: "handleFavoriteButtonTap:", forControlEvents: UIControlEvents.TouchUpInside)
         favoriteButton.tag = product["id"] as Int!
         
-        let productStatus = NSUserDefaults.standardUserDefaults().objectForKey(String(favoriteButton.tag))
+        let productStatus: AnyObject? = NSUserDefaults.standardUserDefaults().objectForKey(String(favoriteButton.tag))
         favoriteButton.selected = productStatus != nil
         
         view.addSubview(favoriteButton)
         
-        let titleLabel = UILabel(frame: CGRectMake(15, 260, 345, 28))
+        let titleLabel = UILabel(frame: CGRectMake(Constants.View.MARGIN, 260,
+            Constants.View.CONTENT_W, 28))
         titleLabel.text = product["title"] as String!
         titleLabel.textColor = UIColor.whiteColor()
         titleLabel.font = UIFont(name: "HelveticaNeue-Italic", size: 24.0)
         titleLabel.shadowColor = UIColor.purpleColor()
         view.addSubview(titleLabel)
         
-        let priceLabel = UILabel(frame: CGRectMake(15, 298, 345, 20))
+        let priceLabel = UILabel(frame: CGRectMake(Constants.View.MARGIN, 298,
+            Constants.View.CONTENT_W, 20))
         let price = product["price"] as Float!
         priceLabel.text = NSString(format: "%.f,-", price)
         priceLabel.textAlignment = NSTextAlignment.Right
@@ -117,13 +149,15 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         priceLabel.font = UIFont(name: "HelveticaNeue-Bold", size: 18.0)
         view.addSubview(priceLabel)
         
-        let brandLabel = UILabel(frame: CGRectMake(15, 298, 345, 20))
+        let brandLabel = UILabel(frame: CGRectMake(Constants.View.MARGIN, 298,
+            Constants.View.CONTENT_W, 20))
         brandLabel.text = product["brand_title"] as String!
         brandLabel.textColor = UIColor.whiteColor()
-        brandLabel.font = UIFont(name: "HelveticaNeue-Regular", size: 16.0)
+        brandLabel.font = UIFont(name: "HelveticaNeue-Regular", size: 18.0)
         view.addSubview(brandLabel)
         
-        let descriptionLabel = UILabel(frame: CGRectMake(15, 330, 345, 200))
+        let descriptionLabel = UILabel(frame: CGRectMake(Constants.View.MARGIN, 330,
+            Constants.View.CONTENT_W, 200))
         descriptionLabel.text = product["description"] as String!
         descriptionLabel.textColor = UIColor.whiteColor()
         descriptionLabel.font = UIFont(name: "HelveticaNeue-Regular", size: 18.0)
@@ -131,8 +165,10 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         descriptionLabel.sizeToFit()
         view.addSubview(descriptionLabel)
         
-        let addToCartButton = UIButton(frame: CGRectMake(15, 540, 345, 40))
+        let addToCartButton = UIButton(frame: CGRectMake(Constants.View.MARGIN, 540,
+            Constants.View.CONTENT_W, 40))
         addToCartButton.setTitle("Add to cart", forState: UIControlState.Normal)
+        addToCartButton.addTarget(self, action: "handleAddToCartTap", forControlEvents: UIControlEvents.TouchUpInside)
         view.addSubview(addToCartButton)
         
         return view
@@ -142,10 +178,8 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
         return self.products.count
     }
     
-    func getProducts() {
-        // Do any additional setup after loading the view, typically from a nib.
-        
-        Alamofire.request(.GET, "http://172.16.9.194:3000/products")
+    func fetchAndDisplayProducts() {
+        Alamofire.request(.GET, Constants.API.products)
             .responseJSON { (_, _, JSON, _) in
                 let data = JSON as NSArray!
                 for productData in data {
@@ -159,11 +193,9 @@ class HomeViewController: UIViewController, RNFrostedSidebarDelegate, SwipeViewD
                         "favorite": false
                     ]
                     self.products.append(product)
-                    println(product.description)
                 }
-                
                 self.swipeView.reloadData()
         }
     }
-
+    
 }
