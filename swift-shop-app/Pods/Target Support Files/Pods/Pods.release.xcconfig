@@ -1,0 +1,6 @@
+GCC_PREPROCESSOR_DEFINITIONS = $(inherited) COCOAPODS=1
+HEADER_SEARCH_PATHS = "${PODS_ROOT}/Headers/Public" "${PODS_ROOT}/Headers/Public/MIBadgeButton" "${PODS_ROOT}/Headers/Public/RNFrostedSidebar" "${PODS_ROOT}/Headers/Public/SDWebImage" "${PODS_ROOT}/Headers/Public/SwipeView"
+OTHER_CFLAGS = $(inherited) -isystem "${PODS_ROOT}/Headers/Public" -isystem "${PODS_ROOT}/Headers/Public/MIBadgeButton" -isystem "${PODS_ROOT}/Headers/Public/RNFrostedSidebar" -isystem "${PODS_ROOT}/Headers/Public/SDWebImage" -isystem "${PODS_ROOT}/Headers/Public/SwipeView"
+OTHER_LDFLAGS = -ObjC -l"Pods-MIBadgeButton" -l"Pods-RNFrostedSidebar" -l"Pods-SDWebImage" -l"Pods-SwipeView" -framework "Accelerate" -framework "ImageIO" -framework "QuartzCore" -framework "UIKit"
+OTHER_LIBTOOLFLAGS = $(OTHER_LDFLAGS)
+PODS_ROOT = ${SRCROOT}/Pods
